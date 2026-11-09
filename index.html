@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="uz" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git va GitHub Mukammal O'quv Platformasi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Fira Code & Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        git: {
+                            orange: '#F05032',
+                            red: '#DE4C36',
+                            dark: '#18181B',
+                            card: '#27272A',
+                            border: '#3F3F46',
+                            accent: '#38BDF8',
+                            green: '#22C55E'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #18181B;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3F3F46;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525B;
+        }
+        .code-block {
+            background-color: #0F0F11;
+            font-family: 'Fira Code', monospace;
+        }
+        .glass-panel {
+            background: rgba(39, 39, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(63, 63, 70, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-git-dark text-gray-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- TOP HEADER & PROGRESS BAR -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-git-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-brands fa-git-alt text-git-orange text-3xl"></i>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+                        Git & GitHub <span class="text-xs px-2 py-0.5 rounded bg-git-orange/20 text-git-orange font-mono">Mastery</span>
+                    </h1>
+                    <p class="text-xs text-gray-400 hidden sm:block">Noldan Deploygacha bo'lgan to'liq interaktiv qo'llanma</p>
+                </div>
+            </div>
+
+            <!-- Search & Global Actions -->
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden md:block w-64">
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Buyruqni qidirish (masalan: reset)..." 
+                        class="w-full bg-zinc-900 text-sm text-gray-200 rounded-lg pl-9 pr-4 py-1.5 border border-zinc-700 focus:outline-none focus:border-git-orange">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-gray-400"></i>
+                </div>
+                
+                <!-- Quick Navigation Tabs -->
+                <button onclick="switchMainTab('learn')" id="tabBtnLearn" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-git-orange text-white flex items-center gap-2 transition">
+                    <i class="fa-solid fa-book-open"></i> <span class="hidden sm:inline">Darslik</span>
+                </button>
+                <button onclick="switchMainTab('reverse')" id="tabBtnReverse" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-zinc-800 text-gray-300 hover:bg-zinc-700 flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrows-rotate text-git-accent"></i> <span class="hidden sm:inline">Teskari Buyruqlar</span>
+                </button>
+                <button onclick="switchMainTab('cheatsheet')" id="tabBtnCheatsheet" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-zinc-800 text-gray-300 hover:bg-zinc-700 flex items-center gap-2 transition">
+                    <i class="fa-solid fa-bolt text-yellow-400"></i> <span class="hidden sm:inline">Cheat Sheet</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-zinc-800 h-1.5">
+            <div id="progressBar" class="bg-gradient-to-r from-git-orange to-git-accent h-1.5 w-0 transition-all duration-300"></div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col md:flex-row gap-6">
+
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="w-full md:w-64 flex-shrink-0">
+            <div class="sticky top-24 space-y-4">
+                
+                <!-- Overall Progress Card -->
+                <div class="bg-git-card p-4 rounded-xl border border-git-border">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">O'zlashtirish</span>
+                        <span id="progressText" class="text-xs font-bold text-git-orange font-mono">0%</span>
+                    </div>
+                    <div class="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
+                        <div id="sidebarProgressBar" class="bg-git-orange h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <!-- Chapter Navigation Menu -->
+                <nav class="bg-git-card rounded-xl border border-git-border p-2 space-y-1 text-sm font-medium">
+                    <div class="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">Bosqichlar</div>
+                    
+                    <a href="#stage1" onclick="setActiveNav('stage1')" id="nav-stage1" class="sidebar-item active flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-terminal text-git-accent"></i> 1. Terminal Asoslari</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(1, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+                    
+                    <a href="#stage2" onclick="setActiveNav('stage2')" id="nav-stage2" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-folder-plus text-amber-400"></i> 2. Git Init & Sozlash</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(2, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+
+                    <a href="#stage3" onclick="setActiveNav('stage3')" id="nav-stage3" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-layer-group text-green-400"></i> 3. Staging & Commit</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(3, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+
+                    <a href="#stage4" onclick="setActiveNav('stage4')" id="nav-stage4" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-rotate-left text-git-orange"></i> 4. Bekor Qilish (Undo)</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(4, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+
+                    <a href="#stage5" onclick="setActiveNav('stage5')" id="nav-stage5" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-code-branch text-purple-400"></i> 5. Branch & Merge</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(5, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+
+                    <a href="#stage6" onclick="setActiveNav('stage6')" id="nav-stage6" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-brands fa-github text-blue-400"></i> 6. GitHub Remote</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(6, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+
+                    <a href="#stage7" onclick="setActiveNav('stage7')" id="nav-stage7" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-code-pull-request text-emerald-400"></i> 7. PR & Review</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(7, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+
+                    <a href="#stage8" onclick="setActiveNav('stage8')" id="nav-stage8" class="sidebar-item flex items-center justify-between px-3 py-2 rounded-lg text-gray-300 hover:bg-zinc-800 transition">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-cloud-arrow-up text-pink-400"></i> 8. Deploy Qilish</span>
+                        <input type="checkbox" onchange="toggleStageCompletion(8, event)" class="rounded text-git-orange focus:ring-0 bg-zinc-900 border-zinc-700">
+                    </a>
+                </nav>
+
+                <!-- Interactive Simulator Quick Launch -->
+                <div class="bg-gradient-to-br from-zinc-900 to-git-card p-4 rounded-xl border border-git-border text-center">
+                    <i class="fa-solid fa-terminal text-2xl text-git-accent mb-2"></i>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-gray-200">Git Terminal Simulyator</h3>
+                    <p class="text-xs text-gray-400 my-2">Buyruqlarni real vaqtda sinab ko'ring</p>
+                    <button onclick="scrollToSimulator()" class="w-full py-1.5 text-xs bg-git-accent/20 text-git-accent border border-git-accent/30 rounded-lg hover:bg-git-accent/30 font-medium transition">
+                        Simulyatorni Ochish
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 min-w-0 space-y-8">
+
+            <!-- TAB 1: MAIN LESSONS SECTION -->
+            <div id="mainLessonsTab" class="space-y-12">
+
+                <!-- INTRO BANNER -->
+                <div class="bg-gradient-to-r from-zinc-900 via-git-card to-zinc-900 border border-git-border rounded-2xl p-6 sm:p-8 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                        <i class="fa-brands fa-git-alt text-9xl text-git-orange"></i>
+                    </div>
+                    <div class="max-w-2xl">
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-git-orange/10 text-git-orange border border-git-orange/20">
+                            Noldan Professional Gacha
+                        </span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold mt-3 text-white">Git va GitHub-ni Professional Darajada O'rganing</h2>
+                        <p class="text-gray-400 text-sm mt-2 leading-relaxed">
+                            Ushbu interaktiv qo'llanmada loyiha papkasini yaratishdan tortib, versiyalarni boshqarish, xatolarni bekor qilish (Undo) va tayyor loyihani serverga deploy qilishgacha bo'lgan barcha jarayonlarni amaliy o'rganasiz.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- STAGE 1: TERMINAL & DIR CREATION -->
+                <section id="stage1" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-git-accent/20 text-git-accent flex items-center justify-center font-bold">1</div>
+                        <h2 class="text-xl font-bold text-white">Papka yaratish va Terminal Asoslari</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Git bilan ishlashdan oldin operatsion tizim terminalida (Command Line / Bash) fayl va papkalar bilan ishlash asosiy buyruqlarini bilish kerak.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Direct Command -->
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-git-accent font-mono">TO'G'RI BUYRUQ</span>
+                                    <span class="text-xs text-gray-400">Papka yaratish & kirish</span>
+                                </div>
+                                <pre class="code-block p-3 rounded text-green-400 text-sm overflow-x-auto"><code>mkdir mening-loyiham
+cd mening-loyiham
+pwd</code></pre>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    <strong class="text-gray-200">mkdir:</strong> Yangi papka ochadi.<br>
+                                    <strong class="text-gray-200">cd:</strong> Papkaga kiradi.<br>
+                                    <strong class="text-gray-200">pwd:</strong> Hozirgi turgan papka manzilini ko'rsatadi.
+                                </p>
+                            </div>
+
+                            <!-- Reverse Command -->
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-git-red font-mono">TESKARI BUYRUQ</span>
+                                    <span class="text-xs text-gray-400">Chiqish & O'chirish</span>
+                                </div>
+                                <pre class="code-block p-3 rounded text-red-400 text-sm overflow-x-auto"><code>cd ..
+rm -rf mening-loyiham</code></pre>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    <strong class="text-gray-200">cd ..:</strong> Bir pog'ona yuqoridagi papkaga qaytadi.<br>
+                                    <strong class="text-gray-200">rm -rf:</strong> Papkani va uning ichidagi barcha fayllarni qaytarib bo'lmas darajada o'chiradi.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 text-xs text-amber-200 flex gap-2 items-start">
+                            <i class="fa-solid fa-triangle-exclamation mt-0.5 text-amber-400"></i>
+                            <span><strong>Eslatma:</strong> <code>rm -rf</code> buyrug'ini ishlatishda juda ehtiyot bo me: u fayllarni korzinaga tashlamaydi, birdaniga butunlay yo'q qiladi!</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STAGE 2: GIT INIT & CONFIG -->
+                <section id="stage2" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-400/20 text-amber-400 flex items-center justify-center font-bold">2</div>
+                        <h2 class="text-xl font-bold text-white">Git Initsializatsiya va Sozlamalar</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Papkada Git versiyalar boshqaruvini yoqish uchun uni <strong>Git repository (ombor)</strong>ga aylantiramiz.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Direct -->
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-git-accent font-mono">INIT & CONFIG</span>
+                                </div>
+                                <pre class="code-block p-3 rounded text-green-400 text-sm overflow-x-auto"><code>git init
+git config --global user.name "Ismingiz"
+git config --global user.email "email@example.com"</code></pre>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    <code>git init</code> papka ichida yashirin <code>.git</code> papkasini yaratadi va barcha versiyalarni kuzatishni boshlaydi.
+                                </p>
+                            </div>
+
+                            <!-- Reverse -->
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <flex class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-git-red font-mono">DE-INIT (TESKARI)</span>
+                                </flex>
+                                <pre class="code-block p-3 rounded text-red-400 text-sm overflow-x-auto"><code>rm -rf .git</code></pre>
+                                <p class="text-xs text-gray-400 mt-2">
+                                    Agar loyihani Git nazoratidan chiqarmoqchi bo'lsangiz, shunchaki <code>.git</code> papkasini o'chirib tashlaysiz. Fayllaringiz o'chmaydi, faqat tarixi o'chadi.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STAGE 3: STAGING & COMMIT -->
+                <section id="stage3" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-green-400/20 text-green-400 flex items-center justify-center font-bold">3</div>
+                        <h2 class="text-xl font-bold text-white">Staging Area va Commit Jarayoni</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Git-da o'zgarishlar uchta holatda bo'ladi: <strong>Working Directory</strong> (ishchi hudud) &rarr; <strong>Staging Area</strong> (tayyorlov hududi) &rarr; <strong>Repository</strong> (saqlangan commitlar).
+                        </p>
+
+                        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-green-400 font-mono">BUYRUQLAR KETMA-KETLIGI</span>
+                            </div>
+                            <pre class="code-block p-3 rounded text-gray-200 text-sm overflow-x-auto"><code><span class="text-gray-500"># 1. Holatni tekshirish</span>
+git status
+
+<span class="text-gray-500"># 2. Faylni staging area-ga qo'shish</span>
+git add index.html
+<span class="text-gray-500"># Yoki barcha fayllarni qo'shish:</span> git add .
+
+<span class="text-gray-500"># 3. O'zgarishlarni snapshot (commit) qilib saqlash</span>
+git commit -m "Initial commit: loyiha yaratildi"
+
+<span class="text-gray-500"># 4. Commitlar tarixini ko'rish</span>
+git log --oneline</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STAGE 4: REVERSE & UNDO COMMANDS (DETAILED) -->
+                <section id="stage4" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-git-orange/20 text-git-orange flex items-center justify-center font-bold">4</div>
+                        <h2 class="text-xl font-bold text-white">Bekor Qilish va Orqaga Qaytish (Undo / Reverse Matrix)</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-6">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Git-ning eng kuchli tomoni — istalgan xatoni bekor qilish imkoniyatidir. Har bir to'g'ri buyruq uchun unga mos keluvchi teskari buyruq mavjud.
+                        </p>
+
+                        <!-- COMPARISON TABLE / CARDS -->
+                        <div class="space-y-4">
+
+                            <!-- Case 1: Unstaging -->
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3 border-b border-zinc-800 pb-2">
+                                    <span class="text-sm font-bold text-white">1. Staging hududidan faylni chiqarish (Unstage)</span>
+                                    <span class="text-xs bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full">Staged &rarr; Unstaged</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                                    <div class="bg-zinc-950 p-3 rounded border border-green-500/30">
+                                        <div class="text-green-400 font-bold mb-1">Qilingan ish:</div>
+                                        <div class="text-gray-300">git add script.js</div>
+                                        <div class="text-gray-500 text-[11px] font-sans mt-1">Fayl commitga tayyor qilib qo'yildi.</div>
+                                    </div>
+                                    <div class="bg-zinc-950 p-3 rounded border border-red-500/30">
+                                        <div class="text-red-400 font-bold mb-1">Teskari buyruq (Bekor qilish):</div>
+                                        <div class="text-gray-300">git restore --staged script.js</div>
+                                        <div class="text-gray-500 text-[11px] font-sans mt-1">Fayl stagingdan chiqariladi, kodingiz o'chmaydi.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Case 2: Discard Uncommitted Changes -->
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3 border-b border-zinc-800 pb-2">
+                                    <span class="text-sm font-bold text-white">2. Fayldagi yozilgan kodingizni bekor qilish (Discard changes)</span>
+                                    <span class="text-xs bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full">Modified &rarr; Clean</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                                    <div class="bg-zinc-950 p-3 rounded border border-green-500/30">
+                                        <div class="text-green-400 font-bold mb-1">Qilingan ish:</div>
+                                        <div class="text-gray-300"># Faylga noto'g'ri kod yozib qo'ydingiz</div>
+                                    </div>
+                                    <div class="bg-zinc-950 p-3 rounded border border-red-500/30">
+                                        <div class="text-red-400 font-bold mb-1">Teskari buyruq:</div>
+                                        <div class="text-gray-300">git restore style.css</div>
+                                        <div class="text-gray-500 text-[11px] font-sans mt-1">Fayldagi oxirgi commitdan keyingi barcha o'zgarishlar o'chib, ko'rsatilgan holatga qaytadi.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Case 3: Undo Last Commit -->
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3 border-b border-zinc-800 pb-2">
+                                    <span class="text-sm font-bold text-white">3. Oxirgi Commit-ni bekor qilish (Soft / Hard Reset)</span>
+                                    <span class="text-xs bg-purple-500/10 text-purple-400 px-2.5 py-1 rounded-full">Commit &rarr; Undo</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                                    <div class="bg-zinc-950 p-3 rounded border border-green-500/30">
+                                        <div class="text-green-400 font-bold mb-1">Qilingan ish:</div>
+                                        <div class="text-gray-300">git commit -m "Xatoli commit"</div>
+                                    </div>
+                                    <div class="bg-zinc-950 p-3 rounded border border-red-500/30">
+                                        <div class="text-red-400 font-bold mb-1">Teskari buyruq (Yumshoq / Qattiq):</div>
+                                        <div class="text-gray-300">git reset --soft HEAD~1</div>
+                                        <div class="text-gray-500 text-[11px] font-sans mt-1"><strong>--soft:</strong> Commit yo'qoladi, lekin kodingiz staging-da qoladi.</div>
+                                        <div class="text-gray-300 mt-2">git reset --hard HEAD~1</div>
+                                        <div class="text-gray-500 text-[11px] font-sans mt-1"><strong>--hard:</strong> Commit ham, undagi kodlar ham butunlay o'chib ketadi!</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Case 4: Revert Published Commit -->
+                            <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+                                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-3 border-b border-zinc-800 pb-2">
+                                    <span class="text-sm font-bold text-white">4. Serverga push qilingan commitni xavfsiz bekor qilish (Revert)</span>
+                                    <span class="text-xs bg-pink-500/10 text-pink-400 px-2.5 py-1 rounded-full">Safe Public Undo</span>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                                    <div class="bg-zinc-950 p-3 rounded border border-green-500/30">
+                                        <div class="text-green-400 font-bold mb-1">Vaziyat:</div>
+                                        <div class="text-gray-300">Commit GitHub-ga yuklab bo'lingan</div>
+                                    </div>
+                                    <div class="bg-zinc-950 p-3 rounded border border-red-500/30">
+                                        <div class="text-red-400 font-bold mb-1">Teskari buyruq:</div>
+                                        <div class="text-gray-300">git revert &lt;commit-hash&gt;</div>
+                                        <div class="text-gray-500 text-[11px] font-sans mt-1">Eski tarixni buzmagan holda, o'sha commitni aksini qiluvchi YANGI commit yaratadi.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STAGE 5: BRANCH & MERGE -->
+                <section id="stage5" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-400/20 text-purple-400 flex items-center justify-center font-bold">5</div>
+                        <h2 class="text-xl font-bold text-white">Branch (Tarmoqlanish) va Merge</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Yangi funksiyalarni asosiy kodingizga (main) zarar yetkazmagan holda alohida tarmoqda (branch) yozish tavsiya etiladi.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <span class="text-xs font-bold text-purple-400 font-mono">BRANCH YARATISH & O'TISH</span>
+                                <pre class="code-block p-3 rounded text-gray-200 text-sm mt-2"><code>git branch feature-login
+git checkout feature-login
+<span class="text-gray-500"># Yoki ikkalasi birda:</span>
+git checkout -b feature-login</code></pre>
+                            </div>
+
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <span class="text-xs font-bold text-git-red font-mono">BRANCH O'CHIRISH (TESKARI)</span>
+                                <pre class="code-block p-3 rounded text-red-400 text-sm mt-2"><code>git checkout main
+git branch -d feature-login
+<span class="text-gray-500"># Majburiy o'chirish:</span>
+git branch -D feature-login</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                            <span class="text-xs font-bold text-green-400 font-mono">MERGE QILISH (BESH-KATTALASHTIRISH)</span>
+                            <pre class="code-block p-3 rounded text-gray-200 text-sm mt-2"><code>git checkout main
+git merge feature-login</code></pre>
+                            <p class="text-xs text-gray-400 mt-2">
+                                Agar merge paytida bir xil qatorda ixtilof bo'lsa (<strong>Merge Conflict</strong>), faylni ochib <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> va <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code> orasidagi kerakli kodni qoldirasiz, keyin <code>git add .</code> va <code>git commit</code> qilasiz.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STAGE 6: GITHUB REMOTE -->
+                <section id="stage6" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-400/20 text-blue-400 flex items-center justify-center font-bold">6</div>
+                        <h2 class="text-xl font-bold text-white">GitHub bilan Ishlash (Remote Repository)</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Lokal kompyuterdagi loyihani bulutga (GitHub) yuklash yoki tayyor loyihani kompyuterga ko'chirib olish (Clone).
+                        </p>
+
+                        <pre class="code-block p-4 rounded-lg text-gray-200 text-sm overflow-x-auto"><code><span class="text-gray-500"># 1. Masofaviy omborni bog'lash</span>
+git remote add origin https://github.com/foydalanuvchi/loyiha.git
+
+<span class="text-gray-500"># 2. Kodni GitHub-ga yuklash (Push)</span>
+git push -u origin main
+
+<span class="text-gray-500"># 3. GitHub-dagi yangi o'zgarishlarni kompyuterga tortib olish (Pull)</span>
+git pull origin main
+
+<span class="text-gray-500"># 4. Tayyor loyihani internetdan ko'chirib olish</span>
+git clone https://github.com/foydalanuvchi/loyiha.git</code></pre>
+
+                        <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                            <span class="text-xs font-bold text-git-red font-mono">REMOTE BOG'LANISHNI UZISH (TESKARI)</span>
+                            <pre class="code-block p-3 rounded text-red-400 text-sm mt-2"><code>git remote remove origin</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- STAGE 7: PULL REQUEST & REVIEW -->
+                <section id="stage7" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-400/20 text-emerald-400 flex items-center justify-center font-bold">7</div>
+                        <h2 class="text-xl font-bold text-white">Pull Request (PR) va Code Review</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            Jamoada ishlaganda hech qachon to'g'ridan-to me <code>main</code> branchiga push qilinmaydi. Buning uchun <strong>Pull Request</strong> ishlatiladi.
+                        </p>
+
+                        <ol class="list-decimal list-inside space-y-2 text-sm text-gray-300">
+                            <li>Yangi branch ochasiz va o'zgarishlarni yuklaysiz: <code>git push origin feature-login</code></li>
+                            <li>GitHub saytiga kirib, <strong>"Compare & pull request"</strong> tugmasini bosasiz.</li>
+                            <li>Jamoa a'zolari kodingizni ko'rib chiqadi (Code Review).</li>
+                            <li>Hamma narsa joyida bo'lsa, <strong>"Merge pull request"</strong> bosiladi.</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <!-- STAGE 8: DEPLOYMENT -->
+                <section id="stage8" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-pink-400/20 text-pink-400 flex items-center justify-center font-bold">8</div>
+                        <h2 class="text-xl font-bold text-white">Loyihani Internetga Deploy Qilish</h2>
+                    </div>
+
+                    <div class="bg-git-card rounded-xl p-5 border border-git-border space-y-4">
+                        <p class="text-sm text-gray-300 leading-relaxed">
+                            GitHub-dagi kodingizni avtomatik ravishda bepul servislarga joylashtirish (Deploy) bosqichlari:
+                        </p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-brands fa-github text-git-orange"></i> GitHub Pages</h3>
+                                <p class="text-xs text-gray-400">Statik HTML/CSS/JS loyihalar uchun ideal. Repository Settings &rarr; Pages bo'limidan <code>main</code> branch tanlanadi.</p>
+                            </div>
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-white"></i> Vercel</h3>
+                                <p class="text-xs text-gray-400">Vercel.com ga GitHub orqali kirib, repository-ni tanlaysiz. Har safar <code>git push</code> qilganingizda avto-deploy bo'ladi.</p>
+                            </div>
+                            <div class="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
+                                <h3 class="font-bold text-white mb-1 flex items-center gap-2"><i class="fa-solid fa-diamond text-teal-400"></i> Netlify / Render</h3>
+                                <p class="text-xs text-gray-400">Frontend va Backend loyihalar uchun qulay avtomatik CI/CD deploy platformasi.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- INTERACTIVE TERMINAL SIMULATOR SECTION -->
+                <section id="simulatorSection" class="scroll-mt-20 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-terminal text-git-accent"></i> Interaktiv Git Terminal Simulyatori
+                        </h2>
+                        <span class="text-xs text-gray-400">Pastdagi tugmalarni bosing yoki terminalga yozing</span>
+                    </div>
+
+                    <div class="bg-zinc-950 border border-git-border rounded-xl shadow-2xl overflow-hidden font-mono">
+                        <!-- Terminal Header -->
+                        <div class="bg-zinc-900 px-4 py-2 flex items-center justify-between border-b border-zinc-800">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                <span class="text-xs text-gray-400 ml-2">bash - bash@my-computer:~/my-project</span>
+                            </div>
+                            <button onclick="clearTerminal()" class="text-xs text-gray-500 hover:text-gray-300">Tozalash (clear)</button>
+                        </div>
+
+                        <!-- Terminal Body -->
+                        <div id="terminalOutput" class="p-4 text-sm h-64 overflow-y-auto space-y-2 text-gray-300">
+                            <div><span class="text-git-accent">welcome</span>: Git simulyatoriga xush kelibsiz! Buyruqlarni sinash uchun tugmalardan foydalaning.</div>
+                        </div>
+
+                        <!-- Terminal Input -->
+                        <div class="p-3 bg-zinc-900/50 border-t border-zinc-800 flex items-center gap-2">
+                            <span class="text-git-green font-bold">$</span>
+                            <input type="text" id="terminalInput" onkeydown="handleTerminalKey(event)" placeholder="Buyruqni yozing (masalan: git status)..." 
+                                class="w-full bg-transparent text-sm text-white focus:outline-none font-mono">
+                        </div>
+
+                        <!-- Quick Action Command Chips -->
+                        <div class="p-3 bg-zinc-900 border-t border-zinc-800 flex flex-wrap gap-2 text-xs">
+                            <button onclick="runSimulatedCmd('git init')" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded border border-zinc-700">git init</button>
+                            <button onclick="runSimulatedCmd('git status')" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded border border-zinc-700">git status</button>
+                            <button onclick="runSimulatedCmd('git add .')" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded border border-zinc-700">git add .</button>
+                            <button onclick="runSimulatedCmd('git commit -m &quot;Feat: login page&quot;')" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded border border-zinc-700">git commit</button>
+                            <button onclick="runSimulatedCmd('git restore --staged .')" class="px-2.5 py-1 bg-git-red/20 text-git-red hover:bg-git-red/30 rounded border border-git-red/30">git restore --staged (undo)</button>
+                            <button onclick="runSimulatedCmd('git log')" class="px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded border border-zinc-700">git log</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- KNOWLEDGE CHECK QUIZ -->
+                <section class="space-y-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question text-amber-400"></i> Bilimni Tekshirish (Quiz)
+                    </h2>
+
+                    <div class="bg-git-card p-6 rounded-xl border border-git-border space-y-4">
+                        <div id="quizQuestion" class="font-medium text-gray-200 text-base">
+                            Savol yuklanmoqda...
+                        </div>
+                        <div id="quizOptions" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Dynamic Options -->
+                        </div>
+                        <div id="quizFeedback" class="hidden p-3 rounded-lg text-sm font-medium"></div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span id="quizScore" class="text-xs text-gray-400">Natija: 0 / 0</span>
+                            <button onclick="nextQuestion()" class="px-4 py-2 bg-git-orange text-white text-xs font-bold rounded-lg hover:bg-git-red transition">Keyingi Savol &rarr;</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- TAB 2: REVERSE COMMANDS MATRIX -->
+            <div id="reverseCommandsTab" class="hidden space-y-6">
+                <div class="bg-git-card p-6 rounded-xl border border-git-border space-y-2">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-arrows-rotate text-git-accent"></i> To'g'ri va Teskari Buyruqlar Lug'ati
+                    </h2>
+                    <p class="text-sm text-gray-400">Har bir buyruq uchun uning bekor qiluvchi muqobili bilan tanishing.</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4" id="reverseMatrixList">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+            </div>
+
+            <!-- TAB 3: CHEAT SHEET -->
+            <div id="cheatsheetTab" class="hidden space-y-6">
+                <div class="bg-git-card p-6 rounded-xl border border-git-border space-y-2">
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i> Tezkor Git Cheat Sheet
+                    </h2>
+                    <p class="text-sm text-gray-400">Eng ko'p ishlatiladigan buyruqlardan nusxa oling (Copy-paste).</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cheatSheetGrid">
+                    <!-- Dynamic cheat sheet cards -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-zinc-950 border-t border-git-border py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500">
+            <p>Git va GitHub Interaktiv O'quv Platformasi. Barcha huquqlar himoyalangan.</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- STATE MANAGEMENT ---
+        const completedStages = new Set();
+        const totalStages = 8;
+
+        // --- REVERSE COMMANDS DATA ---
+        const reverseMatrixData = [
+            {
+                action: "Papkadan chiqish & O'chirish",
+                forward: "mkdir folder && cd folder",
+                reverse: "cd .. && rm -rf folder",
+                desc: "Yaratilgan papkadan bir bosqich orqaga qaytib, uni butunlay o'chirib tashlaydi."
+            },
+            {
+                action: "Git nazoratini bekor qilish",
+                forward: "git init",
+                reverse: "rm -rf .git",
+                desc: "Loyiha ichidagi .git yashirin papkasini o'chirib, Git tarixini nollaydi."
+            },
+            {
+                action: "Staging-dan chiqarish (Unstage)",
+                forward: "git add filename",
+                reverse: "git restore --staged filename",
+                desc: "Faylni commitga tayyorgarlik (Staging) zonasidan chiqaradi, kodingiz o'chmaydi."
+            },
+            {
+                action: "Fayldagi o'zgarishlarni bekor qilish",
+                forward: "Faylga kod yozish",
+                reverse: "git restore filename",
+                desc: "Fayldagi oxirgi commitdan keyin qilingan barcha tahrirlarni o'chirib, asl holiga qaytaradi."
+            },
+            {
+                action: "Oxirgi Commit-ni bekor qilish (Kod qoladi)",
+                forward: "git commit -m 'msg'",
+                reverse: "git reset --soft HEAD~1",
+                desc: "Commit bekor qilinadi, lekin undagi barcha tahrirlangan kodlar staging zonalarda saqlanib qoladi."
+            },
+            {
+                action: "Oxirgi Commit va Kodlarni butunlay o'chirish",
+                forward: "git commit -m 'msg'",
+                reverse: "git reset --hard HEAD~1",
+                desc: "DIQQAT: Commit va undagi barcha yozilgan kodlar butunlay yo'q qilinadi!"
+            },
+            {
+                action: "Serverga push qilingan commitni bekor qilish",
+                forward: "git push origin main",
+                reverse: "git revert <commit-hash>",
+                desc: "Eski tarixni o'chirmasdan, o'sha commitga teskari bo'lgan yangi commit yaratadi (xavfsiz yo'l)."
+            },
+            {
+                action: "Branch-ni o'chirish",
+                forward: "git branch new-feature",
+                reverse: "git branch -d new-feature",
+                desc: "Yaratilgan qo'shimcha tarmoqni (branch) o'chirib tashlaydi."
+            },
+            {
+                action: "Remote serverni uzish",
+                forward: "git remote add origin <url>",
+                reverse: "git remote remove origin",
+                desc: "GitHub bilan o'rnatilgan masofaviy bog'liqlikni bekor qiladi."
+            }
+        ];
+
+        // --- CHEAT SHEET DATA ---
+        const cheatSheetData = [
+            { category: "Boshlang'ich", cmd: "git init", desc: "Yangi Git repository yaratish" },
+            { category: "Boshlang'ich", cmd: "git status", desc: "Fayllar holatini tekshirish" },
+            { category: "Boshlang'ich", cmd: "git add .", desc: "Barcha fayllarni staging-ga qo'shish" },
+            { category: "Boshlang'ich", cmd: "git commit -m 'Xabar'", desc: "O'zgarishlarni saqlash (snapshot)" },
+            { category: "Bekor Qilish", cmd: "git restore --staged <file>", desc: "Staging-dan chiqarish" },
+            { category: "Bekor Qilish", cmd: "git restore <file>", desc: "Fayldagi tahrirni bekor qilish" },
+            { category: "Bekor Qilish", cmd: "git reset --soft HEAD~1", desc: "Oxirgi commitni bekor qilish (kod qoladi)" },
+            { category: "Branch", cmd: "git checkout -b <name>", desc: "Yangi branch ochish va o'tish" },
+            { category: "Branch", cmd: "git merge <name>", desc: "Branch-ni asosiy branchga qo'shish" },
+            { category: "GitHub", cmd: "git push -u origin main", desc: "Kodni serverga yuklash" },
+            { category: "GitHub", cmd: "git pull origin main", desc: "Serverdagi kodni ko'chirib olish" }
+        ];
+
+        // --- QUIZ DATA ---
+        const quizQuestions = [
+            {
+                q: "Faylni Staging area-dan chiqarish (unstage) uchun qaysi buyruq ishlatiladi?",
+                options: ["git reset --hard", "git restore --staged <file>", "git remove <file>", "git checkout main"],
+                correct: 1
+            },
+            {
+                q: "Oxirgi commit-ni bekor qilib, lekin yozilgan kodlarni saqlab qolish uchun nima ishlatiladi?",
+                options: ["git reset --hard HEAD~1", "git clean -df", "git reset --soft HEAD~1", "git branch -d"],
+                correct: 2
+            },
+            {
+                q: "Yangi papka ochish va uning ichiga kirish buyrug'i qaysi?",
+                options: ["mkdir app && cd app", "touch app && cd app", "git init app", "ls -la app"],
+                correct: 0
+            },
+            {
+                q: "GitHub-ga push qilingan commitni tarixni buzmagan holda bekor qilishning eng xavfsiz yo'li qaysi?",
+                options: ["git reset --hard", "git revert <commit-hash>", "rm -rf .git", "git restore ."],
+                correct: 1
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let quizScoreCount = 0;
+
+        // --- SIMULATOR STATE ---
+        let simState = {
+            initialized: false,
+            stagedFiles: [],
+            modifiedFiles: ['index.html'],
+            commits: []
+        };
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderReverseMatrix();
+            renderCheatSheet();
+            renderQuiz();
+        };
+
+        // --- NAVIGATION & TABS ---
+        function switchMainTab(tabName) {
+            document.getElementById('mainLessonsTab').classList.add('hidden');
+            document.getElementById('reverseCommandsTab').classList.add('hidden');
+            document.getElementById('cheatsheetTab').classList.add('hidden');
+
+            document.getElementById('tabBtnLearn').className = "px-3 py-1.5 text-sm font-medium rounded-lg bg-zinc-800 text-gray-300 hover:bg-zinc-700 flex items-center gap-2 transition";
+            document.getElementById('tabBtnReverse').className = "px-3 py-1.5 text-sm font-medium rounded-lg bg-zinc-800 text-gray-300 hover:bg-zinc-700 flex items-center gap-2 transition";
+            document.getElementById('tabBtnCheatsheet').className = "px-3 py-1.5 text-sm font-medium rounded-lg bg-zinc-800 text-gray-300 hover:bg-zinc-700 flex items-center gap-2 transition";
+
+            if (tabName === 'learn') {
+                document.getElementById('mainLessonsTab').classList.remove('hidden');
+                document.getElementById('tabBtnLearn').className = "px-3 py-1.5 text-sm font-medium rounded-lg bg-git-orange text-white flex items-center gap-2 transition";
+            } else if (tabName === 'reverse') {
+                document.getElementById('reverseCommandsTab').classList.remove('hidden');
+                document.getElementById('tabBtnReverse').className = "px-3 py-1.5 text-sm font-medium rounded-lg bg-git-orange text-white flex items-center gap-2 transition";
+            } else if (tabName === 'cheatsheet') {
+                document.getElementById('cheatsheetTab').classList.remove('hidden');
+                document.getElementById('tabBtnCheatsheet').className = "px-3 py-1.5 text-sm font-medium rounded-lg bg-git-orange text-white flex items-center gap-2 transition";
+            }
+        }
+
+        function setActiveNav(stageId) {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('bg-zinc-800', 'text-white'));
+            const activeEl = document.getElementById(`nav-${stageId}`);
+            if (activeEl) activeEl.classList.add('bg-zinc-800', 'text-white');
+        }
+
+        function toggleStageCompletion(stageNum, event) {
+            event.stopPropagation();
+            if (event.target.checked) {
+                completedStages.add(stageNum);
+            } else {
+                completedStages.delete(stageNum);
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percent = Math.round((completedStages.size / totalStages) * 100);
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('sidebarProgressBar').style.width = `${percent}%`;
+            document.getElementById('progressText').innerText = `${percent}%`;
+        }
+
+        function scrollToSimulator() {
+            switchMainTab('learn');
+            document.getElementById('simulatorSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- RENDER MATRIX & CHEAT SHEET ---
+        function renderReverseMatrix() {
+            const container = document.getElementById('reverseMatrixList');
+            container.innerHTML = reverseMatrixData.map(item => `
+                <div class="bg-git-card border border-git-border rounded-xl p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm font-bold text-white">${item.action}</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
+                        <div class="bg-zinc-900 p-3 rounded border border-green-500/30">
+                            <span class="text-green-400 font-bold block mb-1">To'g'ri Buyruq:</span>
+                            <span class="text-gray-200">${escapeHtml(item.forward)}</span>
+                        </div>
+                        <div class="bg-zinc-900 p-3 rounded border border-red-500/30">
+                            <span class="text-red-400 font-bold block mb-1">Teskari Buyruq (Bekor qilish):</span>
+                            <span class="text-gray-200">${escapeHtml(item.reverse)}</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 font-sans">${item.desc}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderCheatSheet() {
+            const container = document.getElementById('cheatSheetGrid');
+            container.innerHTML = cheatSheetData.map(item => `
+                <div class="bg-git-card border border-git-border p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-git-accent bg-git-accent/10 px-2 py-0.5 rounded">${item.category}</span>
+                        <div class="font-mono text-sm text-gray-100 font-bold mt-1">${item.cmd}</div>
+                        <div class="text-xs text-gray-400 mt-0.5">${item.desc}</div>
+                    </div>
+                    <button onclick="copyToClipboard('${item.cmd}')" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-gray-300 rounded text-xs transition">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function copyToClipboard(text) {
+            const tempInput = document.createElement('input');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            alert(`Nusxalandi: ${text}`);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // --- INTERACTIVE SIMULATOR LOGIC ---
+        function handleTerminalKey(e) {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value.trim();
+                if (cmd) {
+                    runSimulatedCmd(cmd);
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function runSimulatedCmd(cmd) {
+            const output = document.getElementById('terminalOutput');
+            
+            // Append Command
+            const cmdLine = document.createElement('div');
+            cmdLine.innerHTML = `<span class="text-git-green font-bold">$ ${cmd}</span>`;
+            output.appendChild(cmdLine);
+
+            let res = '';
+
+            if (cmd === 'clear') {
+                output.innerHTML = '';
+                return;
+            } else if (cmd === 'git init') {
+                simState.initialized = true;
+                res = `<span class="text-green-400">Initialized empty Git repository in /home/user/my-project/.git/</span>`;
+            } else if (!simState.initialized && cmd.startsWith('git')) {
+                res = `<span class="text-red-400">fatal: not a git repository (or any of the parent directories): .git</span>`;
+            } else if (cmd === 'git status') {
+                if (simState.stagedFiles.length === 0 && simState.modifiedFiles.length === 0) {
+                    res = `On branch main\nnothing to commit, working tree clean`;
+                } else {
+                    let out = `On branch main\n`;
+                    if (simState.stagedFiles.length > 0) {
+                        out += `<span class="text-green-400">Changes to be committed:\n  staged: ${simState.stagedFiles.join(', ')}</span>\n`;
+                    }
+                    if (simState.modifiedFiles.length > 0) {
+                        out += `<span class="text-red-400">Changes not staged for commit:\n  modified: ${simState.modifiedFiles.join(', ')}</span>`;
+                    }
+                    res = out;
+                }
+            } else if (cmd === 'git add .' || cmd === 'git add index.html') {
+                simState.stagedFiles = [...new Set([...simState.stagedFiles, ...simState.modifiedFiles])];
+                simState.modifiedFiles = [];
+                res = `<span class="text-gray-400">Fayllar staging area-ga qo'shildi.</span>`;
+            } else if (cmd.startsWith('git restore --staged')) {
+                simState.modifiedFiles = [...new Set([...simState.modifiedFiles, ...simState.stagedFiles])];
+                simState.stagedFiles = [];
+                res = `<span class="text-amber-400">Unstaged changes after reset. Fayllar staging-dan chiqarildi.</span>`;
+            } else if (cmd.startsWith('git commit')) {
+                if (simState.stagedFiles.length === 0) {
+                    res = `nothing to commit, working tree clean`;
+                } else {
+                    const hash = Math.random().toString(36).substring(2, 9);
+                    simState.commits.push({ hash, msg: cmd });
+                    simState.stagedFiles = [];
+                    res = `<span class="text-green-400">[main ${hash}] ${cmd}</span>\n 1 file changed, 10 insertions(+)`;
+                }
+            } else if (cmd === 'git log') {
+                if (simState.commits.length === 0) {
+                    res = `<span class="text-red-400">fatal: your current branch 'main' does not have any commits yet</span>`;
+                } else {
+                    res = simState.commits.map(c => `<span class="text-yellow-400">commit ${c.hash}</span>\nAuthor: User <user@example.com>\n    ${c.msg}`).join('\n\n');
+                }
+            } else {
+                res = `<span class="text-gray-500">Buyruq bajarildi: ${cmd}</span>`;
+            }
+
+            const resLine = document.createElement('div');
+            resLine.className = "whitespace-pre-wrap text-gray-300";
+            resLine.innerHTML = res;
+            output.appendChild(resLine);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearTerminal() {
+            document.getElementById('terminalOutput').innerHTML = '';
+        }
+
+        // --- QUIZ LOGIC ---
+        function renderQuiz() {
+            const q = quizQuestions[currentQuizIndex];
+            document.getElementById('quizQuestion').innerText = `${currentQuizIndex + 1}. ${q.q}`;
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = q.options.map((opt, idx) => `
+                <button onclick="checkAnswer(${idx})" class="p-3 text-left bg-zinc-900 border border-zinc-800 hover:border-git-orange rounded-lg text-xs font-mono text-gray-300 transition">
+                    ${opt}
+                </button>
+            `).join('');
+            document.getElementById('quizFeedback').classList.add('hidden');
+        }
+
+        function checkAnswer(selectedIdx) {
+            const q = quizQuestions[currentQuizIndex];
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden');
+
+            if (selectedIdx === q.correct) {
+                quizScoreCount++;
+                feedback.className = "p-3 rounded-lg text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30";
+                feedback.innerText = "To'g'ri! Baraka toping.";
+            } else {
+                feedback.className = "p-3 rounded-lg text-sm font-medium bg-red-500/20 text-red-400 border border-red-500/30";
+                feedback.innerText = `Noto'g'ri. To'g'ri javob: ${q.options[q.correct]}`;
+            }
+
+            document.getElementById('quizScore').innerText = `Natija: ${quizScoreCount} / ${quizQuestions.length}`;
+        }
+
+        function nextQuestion() {
+            currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+            renderQuiz();
+        }
+
+        // --- SEARCH FILTER ---
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) return;
+
+            // Automatically switch to lesson tab if searching
+            switchMainTab('learn');
+
+            const sections = document.querySelectorAll('main section');
+            sections.forEach(sec => {
+                const text = sec.innerText.toLowerCase();
+                if (text.includes(query)) {
+                    sec.style.display = 'block';
+                } else {
+                    sec.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
